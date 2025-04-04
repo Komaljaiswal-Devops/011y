@@ -1,0 +1,60 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+  
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+      disk:
+      load:
+      filesystem:
+      memory:
+      network:
+      paging:
+      process:
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+  
+  resource:
+    attributes:
+      - key: service.name
+        value: "system-monitoring"
+        action: upsert
+
+exporters:
+  prometheusremotewrite:
+    endpoint: "http://localhost:8428/api/v1/write"
+    tls:
+      insecure: true
+  
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp, hostmetrics]
+      processors: [batch, resource]
+      exporters: [prometheusremotewrite, debug]
+    
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [debug]
+    
+    logs:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [debug]
+
+  telemetry:
+    logs:
+      level: debug
