@@ -16,6 +16,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    user: "472"  # This ensures Grafana runs with the correct internal user
     ports:
       - "3000:3000"  # Grafana UI
     environment:
